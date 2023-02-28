@@ -1,0 +1,35 @@
+FROM node:alpine
+ 
+USER node
+ 
+RUN mkdir -p /home/node/app
+WORKDIR /home/node/app
+ 
+COPY --chown=node:node ./package.json ./
+RUN npm install
+COPY --chown=node:node ./ ./
+
+CMD ["npm", "run", "start"]
+
+#65. Create the Dev Dockerfile
+#Copiamos el package.json del current directory al WORKDIR directory adentro del Container.
+#Se hace primero el copiado del package.json . y luego se corren las dependencias, por el tema del cache. Sino, cada cambio
+#Que hagamos en nuestro código hará un reinstalado de las dependencias.
+#Recordemos que cada vez que runneamos Docker build . -> lo que hará es tomar el Dockerfile para crear la imagen.
+#No obstante, acá no tenemos un file llamado "Dockerfile", sino "Dockerfile.dev", entonces nos tirará un error.
+
+#"failed to solve with frontend dockerfile.v0: failed to read dockerfile: open /var/lib/
+#docker/tmp/buildkit-mount3305127190/Dockerfile: no such file or directory"
+
+#Entonces, tendremos que hacer un cambio y runnear docker build -f Dockerfile.dev . La -f flag se utiliza para determinar el file
+#Que se utiliza para buildear la imagen. 
+
+#Q: What is the -f in Docker build?
+#The -f flag in docker build command is used to specify the Dockerfile to use for building an image.
+# By default, docker build looks for a file named Dockerfile in the build context, but you can use the -f option to 
+#specify a different file.
+#The argument to the -f option can be a relative or absolute path to the Dockerfile.
+#For example, if you have a Dockerfile named my-dockerfile in the current directory, 
+#you can build an image using that file with the following command:
+#docker build -f my-dockerfile .
+#The . at the end specifies the build context, which is the directory where the build process is run from.
