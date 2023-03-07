@@ -1,0 +1,188 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t sportiz91/docker-react -f Dockerfile.dev .
+
+script:
+  - docker run -e CI=true sportiz91/docker-react npm run test
+
+
+#El leading . es importante. 
+#Adentro de este file vamos a empezar a correr configuración para:
+#1. Tell travis we need a copy of Docker running
+#2. Build our image using Dockerfile.dev
+#3. Tell Travis how to run our Test Suite.
+#Siempre que corremos Docker, necesitamos sudo permissions. Entonces, esa es la forma de indicarle a Travis que necesitamos sudo user.
+#Luego, en la pestaña de services, indicamos docker. Travis CI automáticamente instalará una copia de Docker
+#En nuestro pequeño running container. Esencialmente este comando le dice a Travis que necesitamos una copia de Docker ready to go.
+#Es decir, que runee un nuevo Container en la VM. 
+#Luego de eso, vamos a definir una sección llamada before_install. Before install tendrá una serie de directivas que correrán
+#Antes de que nuestros tests sean runneados. 
+#Podríamos pensarlo como pasos de setup antes de deployar nuestro proyecto, o de correr una serie de tests.
+#Entonces, nosotros queremos buildear nuestra docker image antes de que los tests corran.
+#Recordemos que siempre que corremos docker build, vamos a obtener la id de la imagen creada.
+#Durante el curso copiamos y pegamos esa id. Pero con Travis CI no tenemos esa habilidad fácil de hacer copy paste. 
+#Entonces, para evitar copiar y pegar la id, vamos a poner un tag o label a la imagen creada. Entonces vamos a poder referirnos a la
+#Imagen por nombre, en vez de por id. 
+#Entonces, en el futuro, nos vamos a poder referir a la imagen con sportiz91/docker-react. 
+
+#Q: Can you explain me the following .travis.yml code?
+
+#sudo: required
+#services:
+#  - docker
+
+#before_install:
+#  - docker build -t sportiz91/docker-react -f Dockerfile.dev .
+
+#This is a YAML code snippet that is used in the configuration file (.travis.yml) of a project hosted on Travis CI platform. 
+#Let's go through the code line by line:
+
+#sudo: required: This line tells Travis CI to run the build with elevated privileges, as some commands might require root access.
+#services: - docker: This line instructs Travis CI to set up a Docker environment for the build, which means that it 
+#will install Docker and configure it to work with the build.
+#before_install:: This line marks the start of the before_install section, which contains a list of commands 
+#that are run before the installation process starts.
+#docker build -t sportiz91/docker-react -f Dockerfile.dev .: This command builds a Docker image using the Dockerfile.dev file 
+#located in the root directory of the project. 
+#The resulting image is tagged with sportiz91/docker-react, which is the name of the repository that will host the 
+#image in Docker Hub. The .
+#at the end of the command specifies that the build context is the current directory (i.e., the root directory of the project).
+#In summary, this code sets up a Docker environment on Travis CI and builds a Docker image using the specified Dockerfile.
+#This is a common setup for projects that use Docker containers as part of their build and deployment process.
+
+#Q: Can you explain me the services section in the travis.yml configuration file?
+#A:
+#Sure! The services section in a Travis CI configuration file specifies additional services or applications that 
+#should be started up before running the test suite.
+#This is usually used when the tests require certain external dependencies, such as a database, a message queue, 
+#or in the case of this example, Docker.
+#The services section should be a list of strings, where each string is the name of a service to be started.
+#In the example you provided, the services section specifies that Docker should be started by Travis CI before the tests are run.
+#Here's what each line of the services section means:
+#services: The name of the section.
+#- docker: The Docker service to start.
+#In this case, starting the Docker service will allow the Travis CI build to run containers as part of the testing process.
+
+#Q: Can you explain me in detail the following command in travis.yml configuration file? before_install:
+#- docker build -t sportiz91/docker-react -f Dockerfile.dev .
+#In the Travis CI configuration file, the before_install section is 
+#used to specify a list of commands that should be executed before the installation step begins.
+#In the example provided, the before_install section includes a single command:
+#docker build -t sportiz91/docker-react -f Dockerfile.dev .
+#This command builds a Docker image using the Dockerfile.dev file located in the current directory (.), 
+#and tags the resulting image with the name sportiz91/docker-react
+#The -f flag is used to specify the name of the Dockerfile to use for the build.
+#This command is typically used in Travis CI to set up the build environment or to install any dependencies required by the build.
+#In this case, the command is used to build a Docker image that will be used to run tests for a React application.
+
+#Q: What is the installation step in Travis CI? Can you explain me in detail?
+#A: 
+#In Travis CI, the "installation" step is a phase in the build process where the required dependencies 
+#and tools are installed before running the actual tests or other build tasks.
+#The "installation" step is defined in the .travis.yml file under the "install" section. 
+#It can include commands to install dependencies, download packages or tools, or perform any other setup required by the build.
+#For example, if a project requires a specific version of Node.js, the "installation" step could include a 
+#command to download and install that version of Node.js.
+#Similarly, if a project requires certain libraries or packages, the "installation" 
+#step could include commands to install those dependencies.
+#Once the "installation" step is completed, the build moves on to the "script" 
+#step, where the actual tests or other build tasks are run.
+
+#Q: And apart from before_install and install phases, what other phases are defined in travis.yml configuration file? 
+#Can you teach me all about travis.yml?
+#A:
+#The .travis.yml file is a configuration file used by Travis CI to define how the build should be executed.
+#It uses a YAML format and includes a set of key-value pairs that define various stages, environments, 
+#and settings for the build process.
+#Here are some of the key phases and settings that can be defined in the .travis.yml file:
+#before_install: This phase is used to execute commands that should be run before installing dependencies or other setup steps.
+#For example, this can be used to install additional packages, configure environment variables, or start services.
+#install: This phase is used to install dependencies needed for the build.
+#This can include installing packages from a package manager, downloading and compiling source code, 
+#or installing pre-built binaries.
+#before_script: This phase is used to execute any commands that should be run before the main build script is run.
+#For example, this can be used to start up a server or configure other services needed for the build.
+#script: This is the main build phase, where the build commands are defined.
+#This can include running tests, compiling code, and building artifacts.
+#after_success: This phase is used to execute commands that should be run if the build succeeds.
+#For example, this can be used to deploy the built artifacts or notify other systems of the successful build.
+#after_failure: This phase is used to execute commands that should be run if the build fails. 
+#For example, this can be used to generate debugging information or notify developers of the failed build.
+#before_deploy: This phase is used to execute any commands that should be run before the built artifacts are deployed.
+#For example, this can be used to package the artifacts or create release notes.
+#deploy: This phase is used to deploy the built artifacts to a server or other target.
+#This can include copying files to a remote server, publishing to a package manager, or deploying to a cloud provider.
+#after_deploy: This phase is used to execute any commands that should be run after the artifacts are deployed.
+#For example, this can be used to clean up temporary files or notify developers of the successful deployment.
+#after_script: This phase is used to execute any commands that should be run after the build is complete.
+#For example, this can be used to stop services or clean up resources used during the build.
+#Settings:
+#language: This setting specifies the programming language used in the project. 
+#Travis CI provides support for a wide range of languages, including Ruby, Node.js, Python, Java, and more.
+#os: This setting specifies the operating system used for the build. Travis CI supports Linux, macOS, and Windows operating systems.
+#dist: This setting specifies the distribution used for the build. For example, for Linux builds, the dist can be 
+#set to "trusty" or "xenial".
+#env: This setting specifies environment variables that should be set for the build process. 
+#These can be used to specify configuration options, API keys, and other sensitive data.
+#sudo: This setting specifies whether or not the build requires superuser privileges. If set to "required", 
+#the build will run with elevated permissions.
+#cache: This setting specifies directories that should be cached between builds. 
+#This can improve build performance by avoiding the need to re-download dependencies.
+#notifications: This setting specifies how notifications should be sent for the build. 
+#For example, this can be used to send notifications to Slack or email.
+#These are some of the key phases and settings that can be defined 
+#in the .travis.yml file. The exact configuration will vary depending on the specific project and build requirements.
+
+#86. A Touch More Travis Setup
+#Ahora tenemos que agregar una línea más de configuración, que le va a decir a Travis como runnear la Test Suite.
+#El Script section tiene todos los diferentes comandos que necesitan ser ejecutados para runnear la test suite. 
+#Son una serie de comandos que van a ser ejecutados para lograr ejecutar nuestra Test Suite.
+#Travis CI va a estar viendo el output de cada comando. Por cada comando, si obtiene un return code diferente de 0,
+#Travis asumirá que nuestro build falló. Es decir, va a asumir que nuestro código esencialmente está roto.
+#Entonces, vamos a usar el docker run <imageId> npm run test (para overridear el default build command).
+#Con el docker run <imageId> npm run test, tenemos el problema de que el proceso nunca se detiene al completar de runnearse.
+#Es por eso que tenemos que agregar otro comando, docker run <imageId> npm run test -- --coverage.
+#Q: docker run <imageId> npm run test -- --coverage.
+#A: In the docker run command, everything after the image ID (in this case <imageId>) 
+#is passed as a command to be executed in the container.
+#In the command docker run <imageId> npm run test -- --coverage, npm run test is the command 
+#to be executed in the container and -- --coverage are arguments passed to that command.
+#The double-dash -- is used to separate arguments to be passed to the docker run command 
+#from arguments to be passed to the command being run in the container, in this case npm run test.
+#So --coverage is an argument being passed to the npm run test command, which could be a 
+#specific configuration for the test runner or a flag to generate test coverage reports.
+
+#Q: How can I make a Docker container stop after running the main command?
+#A:
+#By default, a Docker container will keep running even after the main command has finished executing. To make the container 
+#stop after running the main command, you can use the --rm flag when running the container.
+#For example, instead of running the container with the command:
+#docker run <imageId> npm run test
+#You can run the container with the command:
+#docker run --rm <imageId> npm run test
+#The --rm flag tells Docker to automatically remove the container after it has exited. This way, 
+#the container will not continue to run indefinitely, and you can avoid accumulating unused containers.
+
+#Q: In the script section of travis.yml configuration file, I have the following command: 
+#"docker run -e CI=true sportiz91/docker-react npm run test". Can you explain me the CI=true part in detail?
+#A:
+#In the Travis CI pipeline, the -e option sets environment variables inside the container. In this specific case, CI is set to true.
+#The CI environment variable is a convention used by many continuous integration (CI) systems, 
+#including Travis CI, to indicate that the current build is running in a CI environment.
+#Setting CI to true can have various effects, such as disabling interactive prompts 
+#or altering the behavior of some testing libraries to work better in CI environments.
+#For example, in the case of the create-react-app tool, setting CI=true suppresses interactive prompts 
+#and makes the tool exit with a non-zero status code if any tests fail,
+#which can be useful for CI systems to detect test failures and fail the build accordingly.
+
+#87. Automatic Build Creation
+#En la sección pasada finalizamos de codear nuestro travis.yml. Vamos a pushear todos los cambios a GitHub. 
+#Cuando pusheamos los cambios, TravisCI debería pull down nuestro code, buildear la imagen, testearla y luego darnos un reporte.
+
+
+
+
+
