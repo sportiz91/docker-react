@@ -1,0 +1,103 @@
+version: '3'
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - /home/node/app/node_modules
+      - .:/home/node/app
+
+  tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - /home/node/app/node_modules
+      - .:/home/node/app
+    command: [ "npm", "run", "test" ]
+
+#70. Shorthand with Docker Compose
+#Anteriormente, dentro del build, podíamos especificar simplemente build: .
+#Pero, cuando usamos build . -> eso asume que que tenemos un Dockerfile adentro del CWD. Probemos hacerlo con build: .
+#Y ver que pasa.  
+#Recordemos que ports: es <outsideContainer>:<insideContainer>.
+#Y por último, podemos crear un shorthand para especificar volúmenes. 
+#Recordemos que el comando que corríamos era: 
+#docker run -it -p 3000:3000 -v /home/node/app/node_modules -v 
+#/home/lasantoneta/learning/docker-course/section-6/frontend:/home/node/app frontend:latest
+#Notar que acá al primer volumen lo estamos especificando sin /home/node. 
+#Luego, el segundo volumen, intenta hacer el bind mount y mapeo del current working directory a la carpeta /app adentro del container.
+#Notar, una vez más, que no estamos determinando el /home/node que se le anteponía en el caso del run command.
+#Entonces, cada vez que intentemos dar de alta nuestro development instance, no tendremos que hacer ese long docker run command.
+#Lo único que tenemos que hacer es docker-compose up. 
+#Cuando intentamos buildear, tenemos el siguiente error:
+#failed to solve with frontend dockerfile.v0: failed to read dockerfile: open /var/lib/docker/tmp/buildkit-mount4269797513/Dockerfile: 
+#no such file or directory
+#ERROR: Service 'web' failed to build : Build failed
+#Esto dado que en el CWD no tenemos un Dockerfile, sino un Dockerfile.dev. 
+
+#Q: Why docker-compose doesn't have /home/node before
+#A: The reason why the docker-compose command doesn't have /home/node in the routes is 
+#because when you use docker-compose, the current directory is mounted as the working directory in the container.
+#In your docker run command, you specifically mounted /home/node/app/node_modules to the container, 
+#which is a directory inside the container where the node modules are installed.
+#This directory is created in your Dockerfile with the following command:
+#RUN mkdir -p /home/node/app
+#However, in your docker-compose file, you only specified the volumes as /app/node_modules and .. 
+#/app/node_modules is the location inside the container where the node modules are installed, and . 
+#is the location on the host machine where the source code is located.
+
+#71. Overriding Dockerfile Selection:
+#En vez de tener el build: . -> ahora vamos a separar el build en dos partes. El context y el name del dockerfile.
+
+#72. Do We Need Copy?
+#Entonces, cada vez que Docker mire a la /home/node/app folder, va a tener una referencia a todos los files que tenemos dentro
+#De esta carpeta, en la local machine. Entonces, una pregunta que quizás nos hacemos es: entonces, adentro de nuestro Dockerfile,
+#tenemos que seguir poniendo el COPY . . instruction?
+#Esto, dado que estamos copiando todo el cwd dentro de nuestra local machine a la /home/node/app folder dentro del container.
+#Lo ideal sería continuar con esa línea. Esto dado que en el futuro, quizás no usamos más el Docker-Compose. O quizás estamos usando el
+#Dockerfile.dev como inspiración para setupear nuestro production Dockerfile. En cualquier caso, necesitamos tener la COPY instruction.
+#No obstante, no es estrictamente necesario, dado que estamos haciendo el bind mount. 
+#Nada más se deja como reminder o referencia para el futuro. 
+
+#75. Docker Compose for Running Tests
+#Para esta segunda solución, vamos a crear un nuevo servicio. El único propósito de este container será el de correr los tests.
+#La configuración será muy parecida a la del Service anterior, pero no tenemos que hacer port mapping, dado que nuestra Test Suite Service
+#No hará uso de ningún puerto del container.
+#El CMD para startear el Container deberá overridear el default CMD, por npm run test. Recordemos que el current CMD del Dockerfile.dev
+#Es npm run start.
+#Entonces, de ahora en más, cuando hagamos el docker-compose up, vamos a estar creando dos containers: uno encargado de hostear el
+#Development Server de React y el otro el Test Suite.
+#Cuando tenemos los dos containers, si hacemos algún cambio en la test suite, dado que tenemos montado el bind mount, el test suite
+#Re-runnear online.
+#El downside del anterior approach era que tenía muchos pasos y era muy engorroso. El downside de este approach es que estamos corriendo
+#Toda la Test Suite adentro de la interfaz del Docker Compose, y entonces no podemos hacer el STDIN/STDOUT para hacer interactiva la 
+#CLI. 
+
+#Q: Can you explain me in detail the "command" section of a service inside a docker-compose.yml?
+#A: The command section of a service in a docker-compose.yml file specifies the command that should 
+#be executed when the container starts.
+#It can be used to override the default command that is specified in the Docker image.
+#The syntax of the command section is as follows:
+#command: command arg1 arg2 ...
+#Here, command specifies the command to be executed and arg1, arg2, etc. are the arguments to be passed to the command.
+#You can specify multiple arguments separated by spaces.
+#For example, suppose you have a service defined in your docker-compose.yml file like this:
+#services:
+#  myapp:
+#    image: myapp:latest
+#    command: node server.js
+#Here, the myapp service will use the myapp:latest image and the node server.js command will be executed when the container starts.
+#You can also use shell commands in the command section by wrapping them in quotes. For example:
+#Here, the sh -c 'echo Hello World!' command will be executed when the container starts.
+
+#Q: Can we use the following syntax in command:
+#command: ["node", "server.js"]
+#?
+#A: Yes, you can use the following syntax in the command section of a service inside a docker-compose.yml file:
+#command: ["node", "server.js"]
+#This will run the node command with the server.js script as an argument inside the container.
+#Using this syntax allows you to specify the command and its arguments as an array of strings.

@@ -8,6 +8,18 @@ before_install:
 script:
   - docker run -e CI=true sportiz91/docker-react npm run test
 
+deploy:
+  provider: elasticbeanstalk
+  region: "us-east-1"
+  app: "docker-react-course"
+  env: "Dockerreactcourse-env"
+  bucket_name: "elasticbeanstalk-us-east-1-395525601196"
+  bucket_path: "docker-react-course"
+  on:
+    branch: master
+  access_key_id: "$AWS_ACCESS_KEY"
+  secret_access_key: "$AWS_SECRET_KEY"
+
 
 #El leading . es importante. 
 #Adentro de este file vamos a empezar a correr configuración para:
@@ -181,6 +193,82 @@ script:
 #87. Automatic Build Creation
 #En la sección pasada finalizamos de codear nuestro travis.yml. Vamos a pushear todos los cambios a GitHub. 
 #Cuando pusheamos los cambios, TravisCI debería pull down nuestro code, buildear la imagen, testearla y luego darnos un reporte.
+
+#90. More on Elastic Beanstalk
+#Vamos a agregar un comando llamado deploy. En el deploy command podemos dar instrucciones específicas a travis-ci para que haga
+#El deployment en AWS.
+#Travis CI viene preconfigurado para deployar nuestra App hacia algunos providers.
+#Luego tenemos la region. Region depende específicamente de dónde cree la EBS instance.
+#Luego, bajo el rótulo de app, tenemos el nombre de la app que especificamos previamente. 
+#La siguiente configuración que tenemos es el environment name. 
+#Luego, vamos a configurar bucket_name. Cuando Travis se decide a deployar nuestro código, va a tomar todos los files dentro de 
+#Nuestro GitHub repo los zipea a todos en un único single file y los copia todos a un Amazon AWS S3 Bucket. 
+#Básicamente, un AWS S3 Bucket is a hard drive corriendo dentro de AWS. 
+#Cuando la copia de todos los files esté realizada, travis-ci va a comunicarse con EBS y le va a decir que redeployee la app
+#Entonces, tenemos que poner el nombre del Bucket en donde Travis CI va a poner el zip file adentro.
+#Para encontrar el name del bucket que usa el environment de EBS que creamos, tenemos que ir al servicio de S3 y buscar el Bucket
+#Correspondiente a nuestro entorno.
+#El S3 Bucket que determinamos a través de bucket_name se reusa en todos los diferentes environments que vayamos creando en nuestra
+#EBS instance. 
+#De bucket_path generalmente es igual al name de la app. 
+#Una última cosa importante: no queremos que se deployee el código a AWS cuando pusheamos a la feature branch. Solamente queremos
+#Que se deployee cuando pusheamos a la master branch.
+#Entonces, le tengo que agregar un: on: branch: master.
+#Q: Can you explain me in detail, the following sections ? (line by line): 
+#"deploy:
+#  provider: elasticbeanstalk
+#  region: "us-east-1"
+#  app: "docker-react-course"
+#  env: "Dockerreactcourse-env"
+#  bucket_name: "elasticbeanstalk-us-east-1-395525601196"
+#  bucket_path: "docker-react-course"
+#  on:
+#    branch: master"
+#A:
+#Deploy -> This indicates that the following lines define the deployment configuration for the Travis CI build.
+#provider: elasticbeanstalk -> This specifies that Travis CI will use Elastic Beanstalk as the deployment provider for this build.
+#region: "us-east-1"
+#This specifies the region where the Elastic Beanstalk instance is located. In this case, it's the US East (N. Virginia) region.
+#app: "docker-react-course"
+#This specifies the name of the Elastic Beanstalk application that will be deployed to.
+#env: "Dockerreactcourse-env"
+#This specifies the name of the Elastic Beanstalk environment that will be deployed to.
+#bucket_name: "elasticbeanstalk-us-east-1-395525601196"
+#This specifies the name of the S3 bucket where the Elastic Beanstalk application version will be stored.
+#bucket_path: "docker-react-course"
+#This specifies the path within the S3 bucket where the Elastic Beanstalk application version will be stored.
+#  on:
+#    branch: master
+#This specifies that the deployment should only be triggered when code is pushed to the master branch.
+#So, when the deploy section is reached during a Travis CI build, it will use Elastic 
+#Beanstalk to deploy the docker-react-course application to the Dockerreactcourse-env environment in the US East (N. Virginia) region.
+#The application version will be stored in the docker-react-course folder 
+#within the elasticbeanstalk-us-east-1-395525601196 S3 bucket. The deployment will only be triggered when 
+#code is pushed to the master branch.
+
+#92. Automated Deployments
+#Lo último que tenemos que hacer de configuración es agregar unas API keys, que le van a dar a Travis-ci el acceso a la cuenta de AWS.
+#Vamos a buscar un nuevo servicio de AWS, llamado IAM. IAM es utilizado para gestionar API keys. Estas API keys se pueden utilizar
+#Luego por outside services.
+#En el lado izquierdo podemos encontrar Users. Básicamente vamos a estar generando un nuevo User que va a ser utilizado por
+#Travis-ci. 
+#En la creación del IAM user, cuando seleccionamos adjuntar políticas manualmente, esas políticas son permisos que tiene el usuario.
+#Básicamente queremos que el usuario tenga la posibilida de deployar desde travis-ci a AWS. 
+#Vamos a ver varias políticas IAM para EBS. La forma más fácil es adjunta la política de darle un acceso completo a EBS.
+#No queremos poner las keys en el GitHub repo y pushearlo, porque todo el mundo va a tener nuestras private keys.
+#En vez de eso, queremos hacer uso de un feature de travis-ci llamado: environments secrets. El mismo lo brinda travis-ci.
+#En travis-ci, vamos a ir al repo que estemos trabajando. More options -> settings -> environments variables -> 
+#Vamos a usar estas environments variables. Estas son encriptadas y guardadas por travis ci. 
+#Lo importante también es que no tengamos clickeado el "display this value in the log". 
+#Una vez que tenemos agregadas las keys a travis-ci, vamos a configurar .travis.yml para que tome esas keys.
+#Entonces, ahora, siempre que travis-ci intente buildear nuestro proyecto, intentará deployar nuestra app directamente a EBS.
+
+
+
+
+
+
+
 
 
 
