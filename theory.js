@@ -1155,6 +1155,13 @@ PID   USER     TIME  COMMAND
 4. Is docker Attach making the attachment over ONLY the primary process of the Container
 5. What is the "primary process" of a container?
 
+93. Exposing Ports Through the Dockerfile
+Una cosa importante, cuando haya finalizado el deployment de la App a EBS, vamos a ver que tenemos un pequeño 
+problema. Y es que, cuando intentemos dirigirnos hacia el link de la app, veremos que no anda.
+Esto dado que antes, cuando trabájamos sin deployar la app a un cloud provider, teníamos que hacer un port mapping.
+Entonces, básicamente tenemos que exponer el PORT. 
+Para hacer el expose, vamos a ir al Dockerfile (file que usamos para generar la imagen de deployment a production -> AWS EBS).
+
 
 
 

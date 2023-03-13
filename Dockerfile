@@ -9,7 +9,7 @@ COPY . .
 RUN npm run build
 
 FROM nginx
-
+EXPOSE 80
 COPY --from=builder /home/node/app/build /usr/share/nginx/html
 
 
@@ -38,5 +38,12 @@ COPY --from=builder /home/node/app/build /usr/share/nginx/html
 #Code, no estamos corriendo npm install, nada. Solo copiando el resultado de la build folder en la carpeta especificada por nginx.
 
 #80. Running Nginx
+
+#93. Exposing Ports Through the Dockerfile
+#La expose instruction es algo que no usamos anteriormente. 
+#En Dev environment, y en la mayoría de los environments, la EXPOSE instruction es simplemente comunicación entre nosotros developers.
+#Entonces, cuando leemos expose estamos leyendo: "oh, este Docker container necesita un port mapping a puerto 80".
+#Para la configuración de nuestro dockerfile, la expose instruction no hace nada. Pero para EBS es útil, en el sentido que va 
+#A mapear el incoming traffic hacia ese puerto.
 
 
