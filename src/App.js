@@ -7,7 +7,7 @@ function App() {
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
-          Because you had to specify the /home/node/app too!!!!!! If not, you have to change it in your Dockerfile.dev!
+          I was changed on the feature branch.
         </p>
         <a
           className="App-link"
